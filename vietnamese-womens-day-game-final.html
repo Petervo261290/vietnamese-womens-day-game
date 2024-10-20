@@ -1,0 +1,263 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Celebrate Vietnamese Women's Day with this fun mini-game!">
+    <meta name="keywords" content="Vietnamese Women's Day, Game, Celebration">
+    <title>Vietnamese Women's Day Mini-Game</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #FFF0F5;
+            color: #333;
+            text-align: center;
+            padding: 20px;
+            margin: 0;
+        }
+        #gameContainer {
+            max-width: 400px;
+            margin: 0 auto;
+            background-color: white;
+            border-radius: 10px;
+            padding: 20px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+        }
+        h1, h2 {
+            color: #FF69B4;
+        }
+        #gameArea {
+            width: 300px;
+            height: 400px;
+            border: 2px solid #FF69B4;
+            margin: 20px auto;
+            position: relative;
+            overflow: hidden;
+        }
+        .item {
+            position: absolute;
+            width: 40px;
+            height: 40px;
+            cursor: pointer;
+            font-size: 30px;
+            line-height: 40px;
+            text-align: center;
+        }
+        button {
+            background-color: #FF69B4;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            font-size: 16px;
+            cursor: pointer;
+            border-radius: 5px;
+            margin: 10px;
+        }
+        input {
+            padding: 10px;
+            font-size: 16px;
+            width: 200px;
+            margin: 10px 0;
+        }
+        #rules {
+            text-align: left;
+            margin: 20px 0;
+        }
+        #rules ul {
+            padding-left: 20px;
+        }
+        #notification {
+            color: red;
+            font-weight: bold;
+            margin: 10px 0;
+        }
+        .highlight {
+            font-weight: bold;
+            color: #FF69B4;
+        }
+        .wish {
+            margin-bottom: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div id="gameContainer">
+        <h1>Chào mừng Ngày Phụ nữ Việt Nam</h1>
+        <h1>Vietnamese Women's Day Greeting</h1>
+        
+        <div id="nameScreen">
+            <p>Vui lòng nhập tên của bạn:</p>
+            <p>Please enter your name:</p>
+            <input type="text" id="playerName" placeholder="Tên của bạn | Your name">
+            <button onclick="showRules()">Tiếp tục | Continue</button>
+        </div>
+
+        <div id="rulesScreen" style="display: none;">
+            <h2>Luật chơi | Game Rules</h2>
+            <div id="rules">
+                <ul>
+                    <li>Thu thập hoa hồng trong 30 giây</li>
+                    <li>Collect roses in 30 seconds</li>
+                    <li>Mục tiêu: 35 điểm | Goal: 35 points</li>
+                    <li>🌹 Rose: +1 điểm | +1 point</li>
+                    <li>💄 Lipstick: +3 điểm | +3 points (chỉ xuất hiện 4 lần | appears only 4 times)</li>
+                    <li>👗 Dress: -2 điểm | -2 points</li>
+                    <li>👒 Hat: -1 điểm | -1 point</li>
+                    <li>15 giây cuối sẽ nhanh hơn</li>
+                    <li>Last 15 seconds will be faster</li>
+                </ul>
+            </div>
+            <p class="highlight">Thu nhỏ màn hình điện thoại để có trải nghiệm tốt hơn</p>
+            <p class="highlight">Minimize the phone screen for a better experience</p>
+            <button onclick="startGame()">Bắt đầu | Start</button>
+        </div>
+
+        <div id="gameScreen" style="display: none;">
+            <div id="score">Điểm: 0 | Score: 0</div>
+            <div id="timer">Thời gian: 30 | Time: 30</div>
+            <div id="notification"></div>
+            <div id="gameArea"></div>
+        </div>
+
+        <div id="endScreen" style="display: none;">
+            <h2>Chúc mừng | Congratulations</h2>
+            <p id="finalScore"></p>
+            <p id="ranking"></p>
+            <div id="wishes"></div>
+            <p>From the bottom of my heart - Peter Vo - The Parentinc (Webtretho & Beyeu)</p>
+            <button onclick="restartGame()">Chơi lại | Play Again</button>
+        </div>
+    </div>
+
+    <script>
+        let playerName = '';
+        let score = 0;
+        let timeLeft = 30;
+        let gameInterval;
+        let itemInterval;
+        let lipstickCount = 0;
+
+        function showRules() {
+            playerName = document.getElementById('playerName').value || 'Player';
+            document.getElementById('nameScreen').style.display = 'none';
+            document.getElementById('rulesScreen').style.display = 'block';
+        }
+
+        function startGame() {
+            document.getElementById('rulesScreen').style.display = 'none';
+            document.getElementById('gameScreen').style.display = 'block';
+            score = 0;
+            timeLeft = 30;
+            lipstickCount = 0;
+            updateDisplay();
+            gameInterval = setInterval(updateTimer, 1000);
+            itemInterval = setInterval(createItem, 1000);
+        }
+
+        function updateTimer() {
+            timeLeft--;
+            updateDisplay();
+            if (timeLeft === 15) {
+                document.getElementById('notification').textContent = 'Tốc độ tăng lên! | Speed increased!';
+                clearInterval(itemInterval);
+                itemInterval = setInterval(createItem, 500); // Faster for the last 15 seconds
+            }
+            if (timeLeft === 0) {
+                endGame();
+            }
+        }
+
+        function createItem() {
+            const gameArea = document.getElementById('gameArea');
+            const item = document.createElement('div');
+            item.className = 'item';
+            item.style.left = `${Math.random() * (gameArea.clientWidth - 40)}px`;
+            item.style.top = '-40px';
+            
+            const itemType = Math.random();
+            if (itemType < 0.6) {
+                item.innerHTML = '🌹';
+                item.dataset.points = 1;
+            } else if (itemType < 0.7 && lipstickCount < 4) {
+                item.innerHTML = '💄';
+                item.dataset.points = 3;
+                lipstickCount++;
+            } else if (itemType < 0.85) {
+                item.innerHTML = '👗';
+                item.dataset.points = -2;
+            } else {
+                item.innerHTML = '👒';
+                item.dataset.points = -1;
+            }
+            
+            item.addEventListener('mousedown', collectItem);
+            item.addEventListener('touchstart', collectItem, { passive: false });
+            
+            gameArea.appendChild(item);
+            moveItem(item);
+        }
+
+        function collectItem(e) {
+            e.preventDefault(); // Prevent default touch behavior
+            const points = parseInt(this.dataset.points);
+            score += points;
+            updateDisplay();
+            this.remove();
+        }
+
+        function moveItem(item) {
+            let pos = -40;
+            const moveInterval = setInterval(() => {
+                pos += timeLeft > 15 ? 1 : 2; // Faster movement in last 15 seconds
+                item.style.top = `${pos}px`;
+                if (pos > 400) {
+                    clearInterval(moveInterval);
+                    item.remove();
+                }
+            }, 20);
+        }
+
+        function updateDisplay() {
+            document.getElementById('score').textContent = `Điểm: ${score} | Score: ${score}`;
+            document.getElementById('timer').textContent = `Thời gian: ${timeLeft} | Time: ${timeLeft}`;
+        }
+
+        function endGame() {
+            clearInterval(gameInterval);
+            clearInterval(itemInterval);
+            document.getElementById('gameScreen').style.display = 'none';
+            document.getElementById('endScreen').style.display = 'block';
+            document.getElementById('finalScore').textContent = `${playerName}, Điểm cuối cùng của bạn: ${score}\nYour final score: ${score}`;
+            document.getElementById('ranking').textContent = getRanking(score);
+            document.getElementById('wishes').innerHTML = getRandomWish();
+        }
+
+        function getRanking(score) {
+            if (score >= 35) return 'Bạn là Bông hồng Việt Nam!\nYou are a Vietnamese Rose!';
+            if (score >= 25) return 'Bạn là Hoa sen tinh khiết!\nYou are a Pure Lotus!';
+            if (score >= 15) return 'Bạn là Cúc vàng rực rỡ!\nYou are a Brilliant Chrysanthemum!';
+            return 'Bạn là Hoa hồng đang nở!\nYou are a Blooming Rose!';
+        }
+
+        function getRandomWish() {
+            const wishes = [
+                'Chúc bạn luôn xinh đẹp và hạnh phúc!<br>Wish you always beautiful and happy!',
+                'Chúc bạn thành công trong cuộc sống!<br>Wish you success in life!',
+                'Chúc bạn tràn đầy năng lượng và niềm vui!<br>Wish you full of energy and joy!',
+                'Chúc bạn mãi trẻ trung và rạng rỡ!<br>Wish you forever young and radiant!',
+                'Chúc bạn luôn tự tin và mạnh mẽ!<br>Wish you always confident and strong!',
+                'Chúc bạn có một ngày tuyệt vời!<br>Wish you have a wonderful day!',
+                'Chúc bạn luôn nhận được sự yêu thương!<br>Wish you always receive love!',
+                'Chúc bạn đạt được mọi ước mơ!<br>Wish you achieve all your dreams!'
+            ];
+            return `<div class="wish">${wishes[Math.floor(Math.random() * wishes.length)]}</div>`;
+        }
+
+        function restartGame() {
+            document.getElementById('endScreen').style.display = 'none';
+            document.getElementById('nameScreen').style.display = 'block';
+            document.getElementById('notification').textContent = '';
+        }
+    </script>
+</body>
+</html>
